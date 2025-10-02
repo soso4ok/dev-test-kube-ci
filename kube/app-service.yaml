@@ -22,6 +22,7 @@ metadata:
   name: nestjs-ingress
   namespace: nest-redis
 spec:
+  ingressClassName: nginx
   rules:
     - http:
         paths:
