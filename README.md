@@ -1,144 +1,153 @@
-# DevOps Тестове Завдання: CI/CD для NestJS + Redis + Kubernetes
+# NestJS + Redis + Kubernetes CI/CD Showcase
 
-**Час виконання:** 1 доба
+[![CI/CD Pipeline](https://github.com/soso4ok/dev-test-kube-ci/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/soso4ok/dev-test-kube-ci/actions/workflows/ci-cd.yml)
 
-## Опис Завдання
-
-Вам надано простий додаток NestJS з одним ендпоінтом `/redis`, який перевіряє підключення до Redis і повертає true/false. Потрібно налаштувати повний CI/CD pipeline та розгорнути додаток у Kubernetes.
-
-## Структура Додатку
-
-```
-nestjs-app/
-├── src/
-│   ├── redis/
-│   │   └── redis.service.ts
-│   ├── app.controller.ts
-│   ├── app.module.ts
-│   ├── app.service.ts
-│   └── main.ts
-├── package.json
-├── tsconfig.json
-```
-
-### Ендпоінт Додатку
-
-- **GET /redis** - повертає `{"status": true/false}` залежно від стану підключення до Redis
-
-## Вимоги
-
-### 1. Dockerfile
-
-- [ ] Створити оптимізований багатоетапний Dockerfile
-- [ ] Використовувати офіційні базові образи
-- [ ] Мінімізувати розмір кінцевого образу
-- [ ] Налаштувати користувача без root прав
-- [ ] Правильно обробити залежності Node.js
-- [ ] Використовувати .dockerignore
-
-### 2. CI/CD Pipeline
-
-Налаштувати pipeline для GitHub Actions або GitLab CI з етапами:
-
-- [ ] Збірка Docker образу
-- [ ] Push образу в registry
-- [ ] Деплой у Kubernetes
-- [ ] Використання змінних середовища та secrets
-
-### 3. Kubernetes Маніфести
-
-- [ ] Deployment, Service, Ingress для NestJS додатку
-- [ ] Deployment, Service для Redis
-- [ ] ConfigMap, Secrets для конфігурації
-- [ ] Правильні labels та selectors
-- [ ] Resource limits та requests
-
-### 4. Інтеграція з Redis
-
-- [ ] Redis розгорнуто у кластері
-- [ ] Додаток успішно підключається до Redis
-- [ ] Ендпоінт `/redis` працює коректно
-
-### 5. Secrets та Безпека
-
-- [ ] Використання Kubernetes Secrets для чутливих даних
-- [ ] Пароль Redis зберігається в Secret
-- [ ] NetworkPolicy для обмеження трафіку (бонус)
-- [ ] SecurityContext у pod'ах
-- [ ] Не використовуються root права в контейнерах
-
-### 6. Додаткові Вимоги
-
-- [ ] Детальний README з інструкціями по налаштуванню
-- [ ] Health checks та Autoscaler
-- [ ] Коментарі в коді та маніфестах
-- [ ] Моніторинг з Prometheus/Grafana
-
-## Критерії Оцінювання
-
-| Компонент         | Відмінно                                                  | Добре                           | Задовільно                 | Незадовільно            |
-| ----------------- | --------------------------------------------------------- | ------------------------------- | -------------------------- | ----------------------- |
-| **Dockerfile**    | Багатоетапний, оптимізований, найкращі безпекові практики | Робочий, частково оптимізований | Базовий робочий Dockerfile | Не працює або відсутній |
-| **CI/CD**         | Повний pipeline з тестами, скануванням, автодеплоєм       | Pipeline з основними етапами    | Базовий pipeline збірки    | Не працює               |
-| **K8s Маніфести** | Повні, оптимізовані, з best practices                     | Коректні основні компоненти     | Базові робочі маніфести    | Не працює               |
-| **Документація**  | Детальна, з прикладами, діаграмами                        | Гарна з основними інструкціями  | Базова документація        | Відсутня або неповна    |
-
-## Що Потрібно Надати
-
-1. **Репозиторій з кодом** (GitHub)
-2. **README.md** з детальними інструкціями
-3. **Архітектурна діаграма** (може бути проста схема)
-4. **Демонстрація роботи** - скріншоти або відео
-5. **Пояснення рішень** - чому обрали саме такий підхід
-
-## Додаткові Інструкції
-
-### Тестове Середовище
-
-- Використовуйте minikube, kind або Docker Desktop для локального тестування
-- Якщо є доступ до хмарного кластеру - можете використовувати його
-- Всі рішення повинні бути відтворюваними
-
-### Registry
-
-- Можете використовувати Docker Hub, GitHub Container Registry або будь-який інший публічний registry
-- Не забудьте про теги версій
-
-### Моніторинг Розгортання
-
-Ці команди повинні працювати для перевірки:
-
-```bash
-kubectl get pods
-kubectl get services
-curl http://domain.tld/redis
-```
-
-## Розподіл Часу
-
-- **30 хв** - Аналіз додатку, планування архітектури
-- **45 хв** - Dockerfile та базові K8s маніфести
-- **30 хв** - CI/CD pipeline
-- **15 хв** - Тестування та відлагодження
-- **20 хв** - Документація та фіналізація
-
-## Критерії Успішного Виконання
-
-### Мінімум для Проходження
-
-- Додаток розгортається в Kubernetes
-- Ендпоінт `/redis` повертає коректну відповідь
-- Dockerfile працює та оптимізований
-- Існує базовий CI/CD pipeline
-- Документація дозволяє відтворити результат
-
-### Для Високої Оцінки Додатково
-
-- Реалізовані security best practices
-- Додані моніторинг та автомасштабування
-- Код та інфраструктура добре документовані
-- Продумані питання продуктивності та відмовостійкості
+This repository demonstrates a **production-ready CI/CD pipeline** for a NestJS application with Redis, deployed to Kubernetes using GitHub Actions. It highlights best practices in containerization, infrastructure as code (IaC), and DevOps automation.
 
 ---
 
-**Удачі!** Чекаємо ваше рішення протягом 2 годин після отримання завдання.
+## 📌 Project Overview
+
+The application is a simple NestJS service exposing one endpoint:
+
+- `GET /redis` → returns `{"status": true}` if Redis is reachable.
+
+The focus of this repo is the **pipeline and deployment flow**, not the business logic.
+
+---
+
+## 🏗️ Architecture
+
+1. Developer pushes code to GitHub.  
+2. GitHub Actions pipeline runs:
+   - Test & scan code  
+   - Build Docker image & scan for vulnerabilities  
+   - Push image to Docker Hub  
+   - Deploy manifests to Kubernetes via self-hosted runner  
+
+High-level flow:
+
+```
+Developer → GitHub Repo → GitHub Actions → Docker Hub → Kubernetes (Minikube/Docker Desktop)
+```
+
+Inside Kubernetes, traffic flows:
+
+```
+Ingress → Service → NestJS Pods → Redis Pod
+```
+
+---
+
+## ✨ Features
+
+- **Multi-stage Dockerfile** → lightweight production image, runs as non-root user
+- **CI/CD with GitHub Actions** → build, scan, and deploy automatically
+- **Infrastructure as Code** → full stack described in Kubernetes YAML
+- **Security**:
+  - Secrets injected from GitHub → never stored in repo
+  - `npm audit` 
+  - NetworkPolicies for zero-trust traffic
+  - Pods run as non-root with least privilege
+- **Local Deployment** → works with Minikube or Docker Desktop via self-hosted runner
+- **Scalability** → Horizontal Pod Autoscaler (HPA) included
+
+---
+
+## ⚙️ Prerequisites
+
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/) **or** Docker Desktop (with Kubernetes enabled)  
+- `kubectl` CLI  
+- Docker Hub account (for images)  
+- GitHub account (for repo + Actions)  
+
+---
+
+## 🚀 Setup
+
+### 1. Clone Repo
+```bash
+git clone https://github.com/your-username/dev-test-kube-ci.git
+cd dev-test-kube-ci
+```
+
+### 2. Start Kubernetes
+```bash
+minikube start
+# or enable Kubernetes in Docker Desktop
+```
+
+Install Ingress Controller:
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+```
+
+### 3. Configure GitHub Secrets
+Go to **Repo → Settings → Secrets and variables → Actions** and add:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN` (Docker Hub access token, not password)
+- `REDIS_PASSWORD`
+
+### 4. Register Self-Hosted Runner
+In GitHub repo: **Settings → Actions → Runners → New self-hosted runner**  
+Follow steps for your OS, then start it:
+
+```bash
+cd actions-runner
+./run.sh
+```
+
+---
+
+## ⚡ CI/CD Pipeline
+
+Workflow: `.github/workflows/ci-cd.yml`
+
+1. **scan** → runs `npm audit`
+2. **build-and-push** → builds multi-stage Dockerfile, scans with Trivy, pushes to Docker Hub
+3. **deploy** → runs on your self-hosted runner, applies Kubernetes manifests
+
+---
+
+## ▶️ Running
+
+Trigger pipeline:
+```bash
+git commit --allow-empty -m "Trigger CI/CD"
+git push origin main
+```
+
+Check pods:
+```bash
+kubectl get pods -n nest-redis
+```
+
+Expected:
+```
+nestjs-app-xxxx   1/1 Running
+redis-xxxx        1/1 Running
+```
+
+Access app:
+```bash
+curl http://localhost/redis
+```
+
+Expected:
+```json
+{"status":true}
+```
+
+---
+
+## 🎯 Summary
+
+You now have:
+- NestJS app with Redis
+- Fully automated GitHub Actions pipeline
+- Secure, reproducible Kubernetes deployment
+- Local testing with Minikube or Docker Desktop
+
+This repo for devops test task
+```

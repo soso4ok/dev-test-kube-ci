@@ -118,7 +118,6 @@ jobs:
 
           kubectl apply -f app-deployment.yaml
           kubectl apply -f app-service.yaml
-          kubectl apply -f ingress.yaml
           kubectl apply -f hpa.yaml
           kubectl apply -f network-policy.yaml
 
