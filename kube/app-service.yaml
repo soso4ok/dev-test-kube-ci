@@ -1,0 +1,34 @@
+# k8s/app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nestjs-service
+  namespace: nest-redis
+  labels:
+    app: nestjs-app
+spec:
+  selector:
+    app: nestjs-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+# k8s/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nestjs-ingress
+  namespace: nest-redis
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /redis
+            pathType: Prefix
+            backend:
+              service:
+                name: nestjs-service
+                port:
+                  number: 80

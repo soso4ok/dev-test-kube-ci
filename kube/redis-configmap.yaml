@@ -1,0 +1,11 @@
+# k8s/redis-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: nest-redis
+data:
+  redis.conf: |
+    appendonly yes
+    dir /data 
+    timeout 0
