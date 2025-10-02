@@ -1,0 +1,124 @@
+name: NestJS CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/nestjs-redis-app
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Scan dependencies for vulnerabilities
+        run: npm audit --audit-level=high
+
+  build-and-push:
+    needs: test-and-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate unique image tag
+        id: image_tag
+        run: echo "tag=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}
+          load: true
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker image to Docker Hub
+        if: github.event_name == 'push'
+        run: docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}
+
+  deploy:
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate unique image tag
+        id: image_tag
+        run: echo "tag=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
+
+      - name: Set Kubernetes context
+        run: kubectl config current-context
+
+      - name: Create Redis secret securely
+        run: |
+          kubectl create secret generic redis-secret \
+            --from-literal=REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+            --namespace=nest-redis \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic app-secret \
+            --from-literal=REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+            --namespace=nest-redis \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update image tag in deployment
+        run: |
+          sed -i.bak "s|image: .*|image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}|g" app-deployment.yaml
+
+      - name: Apply all Kubernetes manifests
+        run: |
+          kubectl apply -f namespace.yaml
+          kubectl apply -f redis-configmap.yaml
+          kubectl apply -f app-configmap.yaml
+          kubectl apply -f redis-deployment.yaml
+          kubectl apply -f redis-service.yaml
+          kubectl apply -f app-deployment.yaml
+          kubectl apply -f app-service.yaml
+          kubectl apply -f ingress.yaml
+          kubectl apply -f hpa.yaml
+          kubectl apply -f network-policy.yaml
+
+      - name: Verify deployment
+        run: kubectl rollout status deployment/nestjs-app -n nest-redis
