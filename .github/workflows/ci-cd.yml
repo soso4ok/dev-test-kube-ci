@@ -104,10 +104,12 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Update image tag in deployment
+        working-directory: ./kube
         run: |
           sed -i.bak "s|image: .*|image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}|g" app-deployment.yaml
 
       - name: Apply all Kubernetes manifests
+        working-directory: ./kube
         run: |
           kubectl apply -f namespace.yaml
           kubectl apply -f redis-configmap.yaml
@@ -121,4 +123,5 @@ jobs:
           kubectl apply -f network-policy.yaml
 
       - name: Verify deployment
+        working-directory: ./kube
         run: kubectl rollout status deployment/nestjs-app -n nest-redis
