@@ -1,10 +1,11 @@
-# k8s/redis-pvc.yaml
+# kube/redis-pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-data
   namespace: nest-redis
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

@@ -96,6 +96,12 @@ jobs:
         working-directory: ./kube
         run: kubectl apply -f namespace.yaml
 
+      - name: Apply Storage (PV and PVC)
+        working-directory: ./kube
+        run: |
+          kubectl apply -f redis-pv.yaml
+          kubectl apply -f redis-pvc.yaml
+
       - name: Create secrets securely
         run: |
           kubectl create secret generic redis-secret \
@@ -106,23 +112,31 @@ jobs:
             --from-literal=REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
             --namespace=nest-redis \
             --dry-run=client -o yaml | kubectl apply -f -
-          
-          
-      - name: Update image tag in deployment
-        working-directory: ./kube
-        run: |
-          sed -i.bak "s|image: .*|image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}|g" app-deployment.yaml
 
-      - name: Apply all Kubernetes manifests
+      - name: Apply ConfigMaps
         working-directory: ./kube
         run: |
           kubectl apply -f redis-configmap.yaml
           kubectl apply -f app-configmap.yaml
-          kubectl apply -f redis-deployment.yaml
 
+      - name: Step 5 - Update image tag in deployment
+        working-directory: ./kube
+        run: |
+          sed -i.bak "s|image: .*|image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.image_tag.outputs.tag }}|g" app-deployment.yaml
+
+      - name: Apply Deployments and Services
+        working-directory: ./kube
+        run: |
+          kubectl apply -f redis-deployment.yaml
           kubectl apply -f app-deployment.yaml
+
+          kubectl apply -f redis-service.yaml
           kubectl apply -f app-service.yaml
- 
+
+      - name: Apply Networking and Autoscaling
+        working-directory: ./kube
+        run: |
+          kubectl apply -f ingress.yaml
           kubectl apply -f hpa.yaml
           kubectl apply -f network-policy.yaml
 

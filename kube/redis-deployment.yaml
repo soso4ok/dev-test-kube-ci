@@ -16,14 +16,22 @@ spec:
       labels:
         app: redis
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.36
+          command: [ "sh", "-c", "chown -R 1001:1001 /data" ]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
       containers:
         - name: redis
           image: redis:7-alpine
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
           args:
             - "sh"
             - "-c"
